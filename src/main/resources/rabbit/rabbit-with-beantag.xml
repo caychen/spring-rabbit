@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+	<!-- 1、配置ConnectionFactory工厂 -->
+	<bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+		<property name="host" value="${mq.host}"></property>
+		<property name="port" value="${mq.port}"></property>
+		<property name="username" value="${mq.username}"></property>
+		<property name="password" value="${mq.password}"></property>
+		<property name="virtualHost" value="${mq.vhost}"></property>
+	</bean>
+	
+	<!-- 2、配置RabbitAdmin代理服务器 -->
+	<bean id="rabbitAdmin" class="org.springframework.amqp.rabbit.core.RabbitAdmin">
+		<constructor-arg name="connectionFactory" ref="rabbitConnectionFactory"></constructor-arg>
+	</bean>
+	
+	<!-- 3、配置RabbitTemplate模版工具类 -->
+	<bean id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"></property>
+	</bean>
+	
+	<!-- 4、配置消息队列 -->
+	<!-- topic模式队列 -->
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_topic_queue}"></constructor-arg>
+	</bean>
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_topic_queue2}"></constructor-arg>
+	</bean>
+	
+	<!-- fanout模式队列 -->
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_fanout_queue}"></constructor-arg>
+	</bean>
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_fanout_queue2}"></constructor-arg>
+	</bean>
+	
+	<!-- direct模式队列 -->
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_direct_queue1}"></constructor-arg>
+	</bean>
+	<bean class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" value="${mq_direct_queue2}"></constructor-arg>
+	</bean>
+	
+	<!-- 5、配置交换机 -->
+	<!-- topic模式交换机 -->
+	<bean class="org.springframework.amqp.core.TopicExchange">
+		<constructor-arg name="name" value="${mq_topic_exchange}"></constructor-arg>
+	</bean>
+	
+	<!-- fanout模式交换机 -->
+	<bean class="org.springframework.amqp.core.FanoutExchange">
+		<constructor-arg name="name" value="${mq_fanout_exchange}"></constructor-arg>
+	</bean>
+	
+	<!-- direct模式交换机 -->
+	<bean class="org.springframework.amqp.core.DirectExchange">
+		<constructor-arg name="name" value="${mq_direct_exchange}"></constructor-arg>
+	</bean>
+	
+	<util:map id="arguments"></util:map>
+	<!-- 6、将队列与交换机绑定 -->
+	<!-- topic模式的绑定 -->
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_topic_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_topic_queue}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="routingKey" value="${mq_topic_pattern}"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+	</bean>
+	
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_topic_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_topic_queue2}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="routingKey" value="${mq_topic_pattern2}"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+	</bean>
+	
+	<!-- fanout模式的绑定 -->
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_fanout_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_fanout_queue}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+		<constructor-arg name="routingKey" value=""></constructor-arg>
+	</bean>
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_fanout_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_fanout_queue2}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+		<constructor-arg name="routingKey" value=""></constructor-arg>
+	</bean>
+	
+	<!-- direct模式的绑定 -->
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_direct_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_direct_queue1}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+		<constructor-arg name="routingKey" value="${mq_direct_key1}"></constructor-arg>
+	</bean>
+	<bean class="org.springframework.amqp.core.Binding">
+		<constructor-arg name="exchange" value="${mq_direct_exchange}"></constructor-arg>
+		<constructor-arg name="destination" value="${mq_direct_queue2}"></constructor-arg>
+		<constructor-arg name="destinationType" value="QUEUE"></constructor-arg>
+		<constructor-arg name="arguments" value="#{arguments}"></constructor-arg>
+		<constructor-arg name="routingKey" value="${mq_direct_key2}"></constructor-arg>
+	</bean>
+	
+	
+	<!-- 7、配置消息监听容器-->
+	<!-- topic模式下的容器配置 -->
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<constructor-arg name="connectionFactory" ref="rabbitConnectionFactory"></constructor-arg>
+		<property name="queueNames" value="${mq_topic_queue}"></property>
+		<!-- 实现MessageListener接口 -->
+		<property name="messageListener" ref="topicConsumerService"></property>
+	</bean>
+	
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<constructor-arg name="connectionFactory" ref="rabbitConnectionFactory"></constructor-arg>
+		<!-- <property name="connectionFactory" ref="rabbitConnectionFactory"></property> -->
+		<property name="queueNames" value="${mq_topic_queue}"></property>
+		<!-- 未实现MessageListener接口的，需要使用adapter适配器，并在适配器中配置监听处理函数 -->
+		<property name="messageListener" ref="topicMessageListenerAdapter"></property>
+	</bean>
+	
+	<bean id="topicMessageListenerAdapter" class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter">
+	<!-- <constructor-arg name="delegate" ref=""></constructor-arg>
+		<constructor-arg name="defaultListenerMethod" value=""></constructor-arg>
+		<constructor-arg name="messageConverter" ref=""></constructor-arg> -->
+		<property name="delegate" ref="topicConsumerService2"></property>
+		<property name="defaultListenerMethod" value="getMessage"></property>
+	</bean>
+	
+	
+	<!-- fanout模式下的容器配置 -->
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"></property>
+		<property name="queueNames" value="${mq_fanout_queue}"></property>
+		<property name="messageListener" ref="fanoutConsumerService"></property>
+	</bean>
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"></property>
+		<property name="queueNames" value="${mq_fanout_queue2}"></property>
+		<property name="messageListener" ref="fanoutMessageListenerAdapter"></property>
+	</bean>
+	
+	<bean id="fanoutMessageListenerAdapter" class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter">
+		<property name="delegate" ref="fanoutConsumerService2"></property>
+		<property name="defaultListenerMethod" value="getMessage"></property>
+	</bean>
+	
+	<!-- direct模式下的容器配置 -->
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"></property>
+		<property name="queueNames" value="${mq_direct_queue1}"></property>
+		<property name="messageListener" ref="directConsumerService"></property>
+	</bean>
+	
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"></property>
+		<property name="queueNames" value="${mq_direct_queue2}"></property>
+		<property name="messageListener" ref="directMessageListenerAdapter"></property>
+	</bean>
+	<bean id="directMessageListenerAdapter" class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter">
+		<property name="delegate" ref="directConsumerService2"></property>
+		<property name="defaultListenerMethod" value="getMessage"></property>
+	</bean> 
+</beans>

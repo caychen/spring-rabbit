@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd">
+
+	<context:component-scan base-package="org.com.cay">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+
+	<context:property-placeholder location="classpath*:rabbit.properties"/>
+
+	<!-- topic模式 -->
+	<!-- <import resource="classpath:rabbit/topic/rabbit-topic-producer.xml"/>
+	<import resource="classpath:rabbit/topic/rabbit-topic-consumer.xml"/> -->
+	
+	<!-- fanout模式 -->
+	<!-- <import resource="classpath:rabbit/fanout/rabbit-fanout-publisher.xml"/>
+	<import resource="classpath:rabbit/fanout/rabbit-fanout-subscriber.xml"/> -->
+	
+	<!-- direct模式 -->
+	<!-- <import resource="classpath:rabbit/direct/rabbit-direct-producer.xml"/>
+	<import resource="classpath:rabbit/direct/rabbit-direct-consumer.xml"/> -->
+	
+	<!-- 使用rabbit标签 -->
+	<!-- <import resource="classpath:rabbit/rabbit-with-rabbittag.xml"/> -->
+	
+	<!-- 使用bean标签 -->
+	<import resource="classpath:rabbit/rabbit-with-beantag.xml"/>
+</beans>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd">
+
+	<import resource="classpath:rabbit/rabbit-common.xml"/>
+
+	<!-- 
+		交换机的四种模式： 
+			direct：类似单播，Exchange会将消息发送完全匹配ROUTING_KEY的Queue
+			topic：类似组播，按规则转发消息（最灵活）。 
+			headers：（ignore） 
+			fanout：类似广播式交换器，转发消息到所有绑定队列 
+			
+		交换器的属性：
+			 持久性：如果启用，交换器将会在server重启前都有效，默认为true。 
+			 自动删除：如果启用，那么交换器将会在其绑定的队列都被删除掉之后自动删除掉自身，默认为false。 
+			惰性：如果没有声明交换器，那么在执行到使用的时候会导致异常，并不会主动声明，默认为false。 
+			
+		如果没有队列绑定在交换机上，则发送到该交换机上的消息会丢失。 
+		一个交换机可以绑定多个队列，一个队列可以被多个交换机绑定。 因为交换器是命名实体，声明一个已经存在的交换器，但是试图赋予不同类型是会导致错误。客户端需要删除这个已经存在的交换器，然后重新声明并且赋予新的类型。 
+		
+			topic 类型交换器通过模式匹配分析消息的 routing-key 属性。
+			 它将 routing-key 和 binding-key 的字符串切分成单词，这些单词之间用点隔开。 
+			它同样也会识别两个通配符：#匹配0个或者多个单词，*匹配一个单词。 
+			例如，binding key：*.stock.#匹配 routing key：usd.stcok和 eur.stock.db，但是不匹配 stock.nana。 -->
+
+
+	<!-- 交换机定义，fanout模式 -->
+	<!-- 
+		name 属性就是在 RabbitMQ 服务器配置交换机的 name 值
+		durable 属性是表示是否持久性 ，默认为true
+	-->
+	<rabbit:fanout-exchange name="${mq_fanout_exchange}">
+		<!-- queue 属性是 <rabbit:queue> 标签的name 属性（据Spring官方表示，也可以是queue的id属性） -->
+		<rabbit:bindings>
+			<rabbit:binding queue="${mq_fanout_queue}"></rabbit:binding>
+			<rabbit:binding queue="${mq_fanout_queue2}"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:fanout-exchange>
+</beans>

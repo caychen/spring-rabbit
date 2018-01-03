@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd">
+
+	<!-- 1、配置ConnectionFactory工厂 -->
+	<rabbit:connection-factory id="rabbitConnectionFactory" host="${mq.host}" port="${mq.port}"
+		username="${mq.username}" password="${mq.password}" virtual-host="${mq.vhost}"/>
+		
+	<!-- 2、配置RabbitAdmin代理服务器 -->
+	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
+	
+	<!-- 3、配置RabbitTemplate模版工具类 -->
+	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"></rabbit:template>
+	
+	<!-- 4、配置消息队列 -->
+	<!-- topic模式队列 -->
+	<rabbit:queue name="${mq_topic_queue}"></rabbit:queue>
+	<rabbit:queue name="${mq_topic_queue2}"></rabbit:queue>
+	<!-- fanout模式队列 -->
+	<rabbit:queue name="${mq_fanout_queue}"></rabbit:queue>
+	<rabbit:queue name="${mq_fanout_queue2}"></rabbit:queue>
+	<!-- direct模式队列 -->
+	<rabbit:queue name="${mq_direct_queue1}"></rabbit:queue>
+	<rabbit:queue name="${mq_direct_queue2}"></rabbit:queue>
+	
+	
+	<!-- 5、配置交换机 -->
+	<!-- topic模式交换机 -->
+	<rabbit:topic-exchange name="${mq_topic_exchange}">
+		<!-- 6、将队列与交换机绑定 -->
+		<rabbit:bindings>
+			<!-- 
+				queue 属性是 <rabbit:queue> 标签的name 属性（据Spring官方表示，也可以是queue的id属性）
+				pattern 属性是在 RabbitMQ 服务器配置交换机与队列绑定时的Routing key 值（路由）
+			 -->
+			<rabbit:binding pattern="${mq_topic_pattern}" queue="${mq_topic_queue}"></rabbit:binding>
+			<rabbit:binding pattern="${mq_topic_pattern2}" queue="${mq_topic_queue2}"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:topic-exchange>
+	
+	<!-- fanout模式交换机 -->
+	<rabbit:fanout-exchange name="${mq_fanout_exchange}">
+		<!-- 6、将队列与交换机绑定 -->
+		<rabbit:bindings>
+			<rabbit:binding queue="${mq_fanout_queue}"></rabbit:binding>
+			<rabbit:binding queue="${mq_fanout_queue2}"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:fanout-exchange>
+	
+	<!-- direct模式交换机 -->
+	<rabbit:direct-exchange name="${mq_direct_exchange}">
+		<!-- 6、将队列与交换机绑定 -->
+		<rabbit:bindings>
+			<rabbit:binding key="${mq_direct_key1}" queue="${mq_direct_queue1}"></rabbit:binding>
+			<rabbit:binding key="${mq_direct_key2}" queue="${mq_direct_queue2}"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
+	
+	<!-- 7、配置消息监听容器 -->
+	<rabbit:listener-container connection-factory="rabbitConnectionFactory">
+		<!-- 
+			queues(或者queue-names) 表示监听队列的name，如果有多个则用逗号分隔 （据官方表示，也可以是queue的id属性）
+			ref表示监听器bean
+		 -->
+		<rabbit:listener ref="topicConsumerService" queue-names="${mq_topic_queue}"/>
+		<rabbit:listener ref="topicConsumerService2" queue-names="${mq_topic_queue}" method="getMessage"/>
+		<rabbit:listener ref="topicConsumerService3" queue-names="${mq_topic_queue2}" method="getMessage"/>
+	</rabbit:listener-container>
+	
+	<rabbit:listener-container connection-factory="rabbitConnectionFactory">
+		<rabbit:listener ref="fanoutConsumerService" queue-names="${mq_fanout_queue}"/>
+		<rabbit:listener ref="fanoutConsumerService2" queue-names="${mq_fanout_queue2}" method="getMessage"/>
+	</rabbit:listener-container>
+	
+	<rabbit:listener-container connection-factory="rabbitConnectionFactory">
+		<rabbit:listener ref="directConsumerService" queue-names="${mq_direct_queue1}"/>
+		<rabbit:listener ref="directConsumerService2" queue-names="${mq_direct_queue2}" method="getMessage"/>
+	</rabbit:listener-container>
+</beans>
